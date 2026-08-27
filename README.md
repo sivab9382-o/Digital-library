@@ -1,7 +1,8 @@
 
   # Digital Library Management System
 
-  This is a code bundle for Digital Library Management System. The original project is available at https://www.figma.com/design/GspoByfxNYUzMwFg3rDqMf/Digital-Library-Management-System.
+  This is a code bundle for Digital Library Management System. The original project is available at 
+digital-library-qr-m6g0xy412-sivab9382-os-projects.vercel.app.
 
   ## Running the code
 
