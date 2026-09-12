@@ -5,12 +5,15 @@ import { Input } from '@/app/components/ui/input';
 import { Label } from '@/app/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/tabs';
-import { BookOpen } from 'lucide-react';
+import { BookOpen, QrCode, Smartphone, Wifi, WifiOff } from 'lucide-react';
 import { toast } from 'sonner';
+import { ShareAppQRModal } from '@/app/components/ShareAppQRModal';
 
 export const Login: React.FC = () => {
-  const { login, register } = useAuth();
+  const { login, register, isBackendOnline } = useAuth();
   const [loginData, setLoginData] = useState({ email: '', password: '' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showQRModal, setShowQRModal] = useState(false);
   const [registerData, setRegisterData] = useState({
     name: '',
     email: '',
@@ -21,11 +24,16 @@ export const Login: React.FC = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const result = await login(loginData.email, loginData.password);
-    if (result.success) {
-      toast.success('Login successful!');
-    } else {
-      toast.error(result.message || 'Invalid credentials.');
+    setIsSubmitting(true);
+    try {
+      const result = await login(loginData.email, loginData.password);
+      if (result.success) {
+        toast.success('Login successful!');
+      } else {
+        toast.error(result.message || 'Invalid credentials.');
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -62,21 +70,61 @@ export const Login: React.FC = () => {
     }
   };
 
+  const fillDemoCredentials = (role: 'admin' | 'student') => {
+    if (role === 'admin') {
+      setLoginData({ email: 'admin@library.com', password: 'admin123' });
+      toast.info('Filled Admin credentials');
+    } else {
+      setLoginData({ email: 'john.doe@student.com', password: 'student123' });
+      toast.info('Filled Student credentials');
+    }
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
-            <div className="bg-primary/10 p-3 rounded-full">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-slate-100 p-4 relative">
+      {/* Top Banner with QR Access */}
+      <div className="w-full max-w-md flex items-center justify-between mb-3 px-1">
+        <div className="flex items-center space-x-1 text-xs">
+          {isBackendOnline ? (
+            <span className="flex items-center text-emerald-700 bg-emerald-100/80 border border-emerald-200 px-2 py-0.5 rounded-full">
+              <Wifi className="w-3 h-3 mr-1" /> Cloud API Online
+            </span>
+          ) : (
+            <span className="flex items-center text-slate-600 bg-slate-200/80 border border-slate-300 px-2 py-0.5 rounded-full" title="Continuous demo & local mode active">
+              <WifiOff className="w-3 h-3 mr-1" /> Demo & Offline Ready
+            </span>
+          )}
+        </div>
+
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setShowQRModal(true)}
+          className="text-xs bg-white/90 hover:bg-white border-indigo-200 text-indigo-700 shadow-xs flex items-center"
+        >
+          <QrCode className="w-3.5 h-3.5 mr-1 text-indigo-600" />
+          <Smartphone className="w-3 h-3 mr-1" />
+          Scan QR to Open
+        </Button>
+      </div>
+
+      <Card className="w-full max-w-md shadow-xl border-slate-200/80">
+        <CardHeader className="text-center pb-4">
+          <div className="flex justify-center mb-3">
+            <div className="bg-primary/10 p-3 rounded-2xl shadow-inner">
               <BookOpen className="h-8 w-8 text-primary" />
             </div>
           </div>
-          <CardTitle className="text-2xl">Digital Library System</CardTitle>
-          <CardDescription>Manage your library with QR Code Integration</CardDescription>
+          <CardTitle className="text-2xl font-bold tracking-tight text-slate-800">
+            Digital Library System
+          </CardTitle>
+          <CardDescription className="text-slate-500">
+            Manage your library with QR Code Integration
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="login" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-2 mb-4">
               <TabsTrigger value="login">Login</TabsTrigger>
               <TabsTrigger value="register">Register</TabsTrigger>
             </TabsList>
@@ -84,11 +132,11 @@ export const Login: React.FC = () => {
             <TabsContent value="login" className="space-y-4">
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="login-email">Email</Label>
+                  <Label htmlFor="login-email">Email / ID</Label>
                   <Input
                     id="login-email"
-                    type="email"
-                    placeholder="your@email.com"
+                    type="text"
+                    placeholder="your@email.com or student ID"
                     value={loginData.email}
                     onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
                     required
@@ -105,9 +153,33 @@ export const Login: React.FC = () => {
                     required
                   />
                 </div>
-                <Button type="submit" className="w-full">Login</Button>
+                <Button type="submit" className="w-full" disabled={isSubmitting}>
+                  {isSubmitting ? 'Logging in...' : 'Login'}
+                </Button>
               </form>
 
+              {/* Demo Quick-Fill Buttons */}
+              <div className="pt-3 border-t border-slate-100">
+                <p className="text-xs text-slate-500 mb-2 font-medium">Quick Demo Accounts:</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => fillDemoCredentials('admin')}
+                    className="text-left p-2 rounded-lg border border-indigo-100 bg-indigo-50/60 hover:bg-indigo-100/70 transition-colors text-xs"
+                  >
+                    <div className="font-semibold text-indigo-900">Admin Account</div>
+                    <div className="text-indigo-600 text-[11px] truncate">admin@library.com</div>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => fillDemoCredentials('student')}
+                    className="text-left p-2 rounded-lg border border-blue-100 bg-blue-50/60 hover:bg-blue-100/70 transition-colors text-xs"
+                  >
+                    <div className="font-semibold text-blue-900">Student Account</div>
+                    <div className="text-blue-600 text-[11px] truncate">john.doe@student.com</div>
+                  </button>
+                </div>
+              </div>
             </TabsContent>
 
             <TabsContent value="register" className="space-y-4">
@@ -173,6 +245,13 @@ export const Login: React.FC = () => {
           </Tabs>
         </CardContent>
       </Card>
+
+      {/* Share QR Dialog */}
+      <ShareAppQRModal
+        isOpen={showQRModal}
+        onClose={() => setShowQRModal(false)}
+      />
     </div>
   );
 };
+
