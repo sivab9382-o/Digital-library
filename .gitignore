@@ -1,0 +1,32 @@
+# Node.js
+node_modules/
+frontend/node_modules/
+
+# Java / Maven
+target/
+**/target/
+
+# Build files
+dist/
+**/dist/
+build/
+**/build/
+
+# Logs
+*.log
+
+# Generated output
+*.txt
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
