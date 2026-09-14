@@ -10,8 +10,8 @@ A modern, full-stack Digital Library Management System featuring:
 
 ## 🌐 Live Access
 
-- **Public Web Link**: [https://digital-library-qr-m6g0xy412-sivab9382-os-projects.vercel.app](https://digital-library-qr-m6g0xy412-sivab9382-os-projects.vercel.app)
-- **Mobile QR Code**: Click **"Scan QR to Open"** on the login page or in the navigation bar to generate a scannable QR code and printable poster for your library.
+- **Public Web Link**: [https://digital-library-qr-mg.vercel.app](https://digital-library-qr-mg.vercel.app) *(or your active domain on [Vercel Dashboard](https://vercel.com/dashboard))*
+- **Mobile QR Code**: Click **"Scan QR to Open"** or **"Explore 63 Books & Collections"** on the login page to preview all collections and generate a printable QR poster.
 
 ### 🔑 Demo Accounts
 | Role | Email / ID | Password | Access |
