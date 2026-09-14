@@ -8,12 +8,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/ta
 import { BookOpen, QrCode, Smartphone, Wifi, WifiOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { ShareAppQRModal } from '@/app/components/ShareAppQRModal';
+import { CollectionShowcaseModal } from '@/app/components/CollectionShowcaseModal';
 
 export const Login: React.FC = () => {
   const { login, register, isBackendOnline } = useAuth();
   const [loginData, setLoginData] = useState({ email: '', password: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showQRModal, setShowQRModal] = useState(false);
+  const [showCollectionModal, setShowCollectionModal] = useState(false);
   const [registerData, setRegisterData] = useState({
     name: '',
     email: '',
@@ -123,6 +125,29 @@ export const Login: React.FC = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {/* Quick Collection Showcase Banner */}
+          <div className="mb-4">
+            <button
+              type="button"
+              onClick={() => setShowCollectionModal(true)}
+              className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border border-indigo-200 bg-gradient-to-r from-indigo-50 via-blue-50 to-indigo-50 hover:from-indigo-100 hover:to-blue-100 transition-all text-xs text-indigo-900 group shadow-xs cursor-pointer"
+            >
+              <div className="flex items-center gap-2.5 text-left">
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-600 text-white shadow-xs shrink-0">
+                  <BookOpen className="w-4 h-4" />
+                </span>
+                <div>
+                  <div className="font-bold text-slate-800 flex items-center gap-1.5">
+                    Explore 63 Books & Collections
+                    <span className="bg-indigo-600 text-white text-[9px] px-1.5 py-0.5 rounded-full uppercase tracking-wider font-extrabold">Live</span>
+                  </div>
+                  <div className="text-[11px] text-slate-500">CS, Java, Python, AI, Award Winners & Sci-Fi</div>
+                </div>
+              </div>
+              <span className="text-indigo-600 font-semibold text-xs group-hover:translate-x-1 transition-transform">Browse &rarr;</span>
+            </button>
+          </div>
+
           <Tabs defaultValue="login" className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-4">
               <TabsTrigger value="login">Login</TabsTrigger>
@@ -250,6 +275,15 @@ export const Login: React.FC = () => {
       <ShareAppQRModal
         isOpen={showQRModal}
         onClose={() => setShowQRModal(false)}
+      />
+
+      {/* Full Collections Showcase Dialog */}
+      <CollectionShowcaseModal
+        isOpen={showCollectionModal}
+        onClose={() => setShowCollectionModal(false)}
+        onSelectBookToLogin={(_book) => {
+          fillDemoCredentials('student');
+        }}
       />
     </div>
   );

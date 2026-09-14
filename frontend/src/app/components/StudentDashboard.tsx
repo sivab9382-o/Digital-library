@@ -14,6 +14,7 @@ import { QRScanner } from '@/app/components/QRScanner';
 import { toast } from 'sonner';
 import { getBooks, getTransactions, saveBooks, saveTransactions } from '@/app/utils/mockData';
 import { ShareAppQRModal } from '@/app/components/ShareAppQRModal';
+import { CollectionShowcaseModal } from '@/app/components/CollectionShowcaseModal';
 
 export const StudentDashboard: React.FC = () => {
   const { user, logout } = useAuth();
@@ -23,6 +24,7 @@ export const StudentDashboard: React.FC = () => {
   const [filterGenre, setFilterGenre] = useState('all');
   const [showQR, setShowQR] = useState(false);
   const [showAppQR, setShowAppQR] = useState(false);
+  const [showShowcaseModal, setShowShowcaseModal] = useState(false);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
@@ -228,6 +230,15 @@ export const StudentDashboard: React.FC = () => {
               </div>
             </div>
             <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowShowcaseModal(true)}
+                className="border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+              >
+                <BookOpen className="mr-1.5 h-4 w-4" />
+                Collections Showcase ({genres.length})
+              </Button>
               <Button variant="outline" size="sm" onClick={() => setShowAppQR(true)} className="border-indigo-200 text-indigo-700 hover:bg-indigo-50">
                 <Smartphone className="mr-1.5 h-4 w-4" />
                 Share App QR
@@ -689,6 +700,12 @@ export const StudentDashboard: React.FC = () => {
       <ShareAppQRModal
         isOpen={showAppQR}
         onClose={() => setShowAppQR(false)}
+      />
+
+      {/* Collections Showcase Modal */}
+      <CollectionShowcaseModal
+        isOpen={showShowcaseModal}
+        onClose={() => setShowShowcaseModal(false)}
       />
     </div>
   );

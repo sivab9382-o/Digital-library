@@ -12,8 +12,9 @@ import { QRScanner } from '@/app/components/QRScanner';
 import { LogOut, BookOpen, Users, PlusCircle, ScanLine, RefreshCw, History, Smartphone } from 'lucide-react';
 import QRCode from 'react-qr-code';
 import { toast } from 'sonner';
-import { getBooks, getMembers, getTransactions, saveBooks, saveMembers, saveTransactions } from '@/app/utils/mockData';
+import { getBooks, getMembers, getTransactions, saveBooks, saveMembers, saveTransactions, resetToFullCollection } from '@/app/utils/mockData';
 import { ShareAppQRModal } from '@/app/components/ShareAppQRModal';
+import { CollectionShowcaseModal } from '@/app/components/CollectionShowcaseModal';
 
 export const AdminDashboard: React.FC = () => {
   const { user, logout } = useAuth();
@@ -22,6 +23,8 @@ export const AdminDashboard: React.FC = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [showScanner, setShowScanner] = useState(false);
   const [showAppQR, setShowAppQR] = useState(false);
+  const [showShowcaseModal, setShowShowcaseModal] = useState(false);
+  const [filterGenre, setFilterGenre] = useState('all');
   const [scanMode, setScanMode] = useState<'issue' | 'return' | null>(null);
   const [scannedMemberId, setScannedMemberId] = useState<string | null>(null);
   const [scannedBookId, setScannedBookId] = useState<string | null>(null);
@@ -32,6 +35,8 @@ export const AdminDashboard: React.FC = () => {
   const [selectedBookId, setSelectedBookId] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMemberForBooks, setSelectedMemberForBooks] = useState<Member | null>(null);
+
+  const genres = Array.from(new Set(books.map((b) => b.genre)));
 
 
   const [newBook, setNewBook] = useState({
@@ -476,6 +481,15 @@ export const AdminDashboard: React.FC = () => {
               <Button
                 variant="outline"
                 size="sm"
+                onClick={() => setShowShowcaseModal(true)}
+                className="border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+              >
+                <BookOpen className="mr-1.5 h-4 w-4" />
+                Collections Showcase ({genres.length})
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => setShowAppQR(true)}
                 className="border-indigo-200 text-indigo-700 hover:bg-indigo-50"
               >
@@ -496,7 +510,7 @@ export const AdminDashboard: React.FC = () => {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Total Books</CardTitle>
@@ -504,6 +518,15 @@ export const AdminDashboard: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.totalBooks}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Collections</CardTitle>
+              <BookOpen className="h-4 w-4 text-indigo-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-indigo-600">{genres.length}</div>
             </CardContent>
           </Card>
           <Card>
@@ -699,8 +722,8 @@ export const AdminDashboard: React.FC = () => {
           </TabsList>
 
           <TabsContent value="books" className="space-y-4">
-            <div className="flex items-center gap-4 mb-4">
-              <div className="flex-1 relative">
+            <div className="flex flex-col sm:flex-row items-center gap-3 mb-4">
+              <div className="flex-1 relative w-full">
                 <Input
                   placeholder="Search books by title, author, or ISBN..."
                   value={searchQuery}
@@ -708,13 +731,39 @@ export const AdminDashboard: React.FC = () => {
                   className="pl-4"
                 />
               </div>
+              <select
+                value={filterGenre}
+                onChange={(e) => setFilterGenre(e.target.value)}
+                className="w-full sm:w-60 h-10 px-3 py-2 rounded-md border border-input bg-background text-sm ring-offset-background"
+              >
+                <option value="all">All Collections ({books.length})</option>
+                {genres.map((g) => (
+                  <option key={g} value={g}>{g} ({books.filter(b => b.genre === g).length})</option>
+                ))}
+              </select>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const refreshed = resetToFullCollection();
+                  setBooks(refreshed);
+                  toast.success(`Synchronized full library catalog (${refreshed.length} books)!`);
+                }}
+                className="shrink-0 text-xs border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+              >
+                <RefreshCw className="mr-1.5 h-3.5 w-3.5 text-indigo-600" />
+                Sync 63-Book Catalog
+              </Button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {books.filter(b =>
-                b.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                b.author.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                b.isbn.includes(searchQuery)
-              ).map((book: Book) => (
+              {books.filter(b => {
+                const matchesSearch =
+                  b.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                  b.author.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                  b.isbn.includes(searchQuery);
+                const matchesGenre = filterGenre === 'all' || b.genre === filterGenre;
+                return matchesSearch && matchesGenre;
+              }).map((book: Book) => (
                 <Card key={book.id} className="group hover:border-primary/30 transition-all duration-300 hover:shadow-md">
                   <CardHeader>
                     <div className="flex items-start justify-between gap-4">
@@ -972,6 +1021,12 @@ export const AdminDashboard: React.FC = () => {
       <ShareAppQRModal
         isOpen={showAppQR}
         onClose={() => setShowAppQR(false)}
+      />
+
+      {/* Collections Showcase Modal */}
+      <CollectionShowcaseModal
+        isOpen={showShowcaseModal}
+        onClose={() => setShowShowcaseModal(false)}
       />
     </div >
   );
